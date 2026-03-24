@@ -6,15 +6,14 @@ export async function mergeGpxFiles(files: File[]): Promise<string> {
   const parser = new DOMParser()
   const allTrkpts: Element[] = []
   let firstDoc: Document | null = null
-  let firstMeta: Element | null = null
 
   for (const file of files) {
     const text = await file.text()
     const doc = parser.parseFromString(text, 'application/xml')
-    if (!firstDoc) {
-      firstDoc = doc
-      firstMeta = doc.querySelector('metadata')
+    if (doc.querySelector('parsererror')) {
+      throw new Error(`Failed to parse GPX file: ${file.name}`)
     }
+    if (!firstDoc) firstDoc = doc
     doc.querySelectorAll('trkpt').forEach(pt => allTrkpts.push(pt))
   }
 
@@ -25,26 +24,25 @@ export async function mergeGpxFiles(files: File[]): Promise<string> {
     return ta < tb ? -1 : ta > tb ? 1 : 0
   })
 
-  // Build output document using a template string and re-parse
-  let trkptsXml = ''
+  // Build output document
+  const gpx = firstDoc!.createElement('gpx')
+  gpx.setAttribute('version', '1.1')
+  gpx.setAttribute('creator', 'RideStitch')
+  gpx.setAttribute('xmlns', 'http://www.topografix.com/GPX/1/1')
+
+  // Copy metadata from first file if present
+  const meta = firstDoc!.querySelector('metadata')
+  if (meta) gpx.appendChild(meta.cloneNode(true))
+
+  const trk = firstDoc!.createElement('trk')
+  const trkseg = firstDoc!.createElement('trkseg')
+
   for (const pt of allTrkpts) {
-    trkptsXml += new XMLSerializer().serializeToString(pt)
+    trkseg.appendChild(pt.cloneNode(true))
   }
 
-  let metaXml = ''
-  if (firstMeta) {
-    metaXml = new XMLSerializer().serializeToString(firstMeta)
-  }
+  trk.appendChild(trkseg)
+  gpx.appendChild(trk)
 
-  const gpxString = `<?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="RideStitch" xmlns="http://www.topografix.com/GPX/1/1">
-${metaXml ? '  ' + metaXml : ''}
-  <trk>
-    <trkseg>
-${trkptsXml.split('\n').map(line => line ? '      ' + line : '').join('\n')}
-    </trkseg>
-  </trk>
-</gpx>`
-
-  return gpxString
+  return new XMLSerializer().serializeToString(gpx)
 }
