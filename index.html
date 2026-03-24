@@ -18,37 +18,36 @@
     <section class="faq">
       <h3 class="faq-title" data-i18n="faq.section.title">よくある質問</h3>
       <div class="faq-list">
-        <div class="faq-item faq-item--red">
+        <div class="faq-item">
           <div class="faq-heading">
             <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
             <span class="faq-q" data-i18n="faq.privacy.q">プライバシーについて</span>
           </div>
-          <p class="faq-a" data-i18n="faq.privacy.a">アップロードしたファイルはブラウザ内だけで処理されます。サーバーには一切送信されません。</p>
+          <p class="faq-a" data-i18n="faq.privacy.a">アップロードしたファイルはブラウザ内だけで処理されます。<strong>サーバーには一切送信されません。</strong></p>
         </div>
-        <div class="faq-item faq-item--orange">
-          <div class="faq-heading">
-            <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-            <span class="faq-q" data-i18n="faq.who.q">どんな人向け？</span>
-          </div>
-          <p class="faq-a" data-i18n="faq.who.a">Garmin デバイスなどの電池切れや一時停止でライドが複数ファイルに分割されてしまった方向けです。Garmin Connect・Strava などにアップロードできる 1 つのファイルに結合できます。</p>
-        </div>
-        <div class="faq-item faq-item--red">
+        <div class="faq-item">
           <div class="faq-heading">
             <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
             <span class="faq-q" data-i18n="faq.howto.q">使い方</span>
           </div>
-          <p class="faq-a" data-i18n="faq.howto.a">結合したいファイルをすべてドロップ（またはクリックして選択）して、「結合してダウンロード」を押すだけです。順番はドラッグで並べ替えできます。</p>
+          <ol class="faq-steps">
+            <li data-i18n="faq.howto.step1">結合したいログをエクスポート（可能なら FIT 形式がおすすめ）</li>
+            <li data-i18n="faq.howto.step2">Garmin Connect または Strava から元のログを削除（削除しないと結合ファイルをアップロードできません）</li>
+            <li data-i18n="faq.howto.step3">ログファイルをこのページにドロップ（またはクリックして選択）</li>
+            <li data-i18n="faq.howto.step4">時刻などを自動解析してファイルが結合され、ダウンロードが始まります</li>
+            <li data-i18n="faq.howto.step5">ダウンロードされた merged_activity ファイルを Garmin Connect や Strava にインポート（Strava 自動連携をしている場合は連携元にアップロードすれば自動反映されます。反映されない場合は手動で Strava に取り込んでください）</li>
+          </ol>
         </div>
-        <div class="faq-item faq-item--orange">
+        <div class="faq-item">
           <div class="faq-heading">
             <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            <span class="faq-q" data-i18n="faq.tips.q">アドバイス</span>
+            <span class="faq-q" data-i18n="faq.tip.q">ヒント</span>
           </div>
-          <p class="faq-a" data-i18n="faq.tips.a">Garmin Connect・Strava では重複アクティビティがあるとアップロードが失敗することがあります（特に Strava）。結合ファイルをアップロードする前に、元の分割アクティビティを先に削除してください。</p>
+          <p class="faq-a" data-i18n="faq.tip.a">FIT 形式のデータは、パワーメーターのデータ、気温、ペダリング情報など多彩な情報が含まれています。もし FIT データが使えるなら、FIT データを結合に使ってください。GPX にするとデータの種類が大幅に減ります。なお、Strava に手動アップする場合も FIT データがおすすめです。</p>
         </div>
-        <div class="faq-item faq-item--red">
+        <div class="faq-item">
           <div class="faq-heading">
-            <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M4.93 4.93l1.41 1.41M3 12h2m14 0h2m-3.34-5.66l1.41-1.41M12 3v2m0 14v2m-7.07 1.07l1.41-1.41m11.32 0l1.41 1.41M8 12a4 4 0 108 0c0-1.5-.8-2.8-2-3.46V7a2 2 0 10-4 0v1.54A3.99 3.99 0 008 12z" /></svg>
             <span class="faq-q" data-i18n="faq.bugs.q">バグ報告</span>
           </div>
           <p class="faq-a">
