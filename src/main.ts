@@ -12,6 +12,7 @@ function init(): void {
   setLang(state.lang)
   render()
   bindStaticEvents()
+  bindDynamicEvents()
 }
 
 // --- Static events (header, always present — called once) ---
