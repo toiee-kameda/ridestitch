@@ -28,3 +28,4 @@ src/**/*.js
 *.sln
 *.sw?
 docs/test-data/*
+docs/superpowers/
