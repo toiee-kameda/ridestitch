@@ -20,5 +20,18 @@
   "success.warning.body": "Garmin Connect・Stravaでは重複するアクティビティがあるとアップロードが失敗します。分割されていた元のアクティビティを先に削除してからアップロードしてください。",
   "reset.button": "新しい結合を開始",
   "error.title": "エラーが発生しました",
-  "error.reset": "やり直す"
+  "error.reset": "やり直す",
+  "faq.section.title": "よくある質問",
+  "faq.privacy.q": "プライバシーについて",
+  "faq.privacy.a": "アップロードしたファイルはブラウザ内だけで処理されます。サーバーには一切送信されません。",
+  "faq.who.q": "どんな人向け？",
+  "faq.who.a": "Garmin デバイスなどの電池切れや一時停止でライドが複数ファイルに分割されてしまった方向けです。Garmin Connect・Strava などにアップロードできる 1 つのファイルに結合できます。",
+  "faq.howto.q": "使い方",
+  "faq.howto.a": "結合したいファイルをすべてドロップ（またはクリックして選択）して、「結合してダウンロード」を押すだけです。順番はドラッグで並べ替えできます。",
+  "faq.tips.q": "アドバイス",
+  "faq.tips.a": "Garmin Connect・Strava では重複アクティビティがあるとアップロードが失敗することがあります（特に Strava）。結合ファイルをアップロードする前に、元の分割アクティビティを先に削除してください。",
+  "faq.bugs.q": "バグ報告",
+  "faq.bugs.a.pre": "問題が起きた場合は",
+  "faq.bugs.a.post": "からご報告ください。",
+  "faq.bugs.link": "GitHub Issues"
 }

@@ -1,7 +1,7 @@
 // src/main.ts
 import './style.css'
 import { getState, setState, resetState, type FileEntry } from './state'
-import { setLang } from './i18n'
+import { setLang, applyStaticI18n } from './i18n'
 import { render } from './ui'
 import { mergeFitFiles, sortFilesByStartTime } from './fit-merger'
 import { mergeGpxFiles } from './gpx-merger'
@@ -13,6 +13,7 @@ function init(): void {
   render()
   bindStaticEvents()
   bindDynamicEvents()
+  applyStaticI18n()
 }
 
 // --- Static events (header, always present — called once) ---
@@ -27,6 +28,7 @@ function handleLangToggle(): void {
   setState({ lang: next })
   render()
   bindDynamicEvents()
+  applyStaticI18n()
 }
 
 // --- Dynamic events (re-bound after each render) ---

@@ -20,5 +20,18 @@
   "success.warning.body": "Garmin Connect and Strava will reject uploads if duplicate activities already exist. Delete the original split activities first, then upload the merged file.",
   "reset.button": "↺ Start a new merge",
   "error.title": "Something went wrong",
-  "error.reset": "Try again"
+  "error.reset": "Try again",
+  "faq.section.title": "FAQ",
+  "faq.privacy.q": "About Privacy",
+  "faq.privacy.a": "Files are processed entirely in your browser. Nothing is sent to any server.",
+  "faq.who.q": "Who is this for?",
+  "faq.who.a": "Designed for cyclists whose rides were split into multiple files due to device battery drain or pausing. Merge them into one file to upload to Garmin Connect, Strava, and more.",
+  "faq.howto.q": "How to use",
+  "faq.howto.a": "Drop all the files you want to merge (or click to select them), then press \"Merge & Download\". You can drag to reorder files before merging.",
+  "faq.tips.q": "Tips",
+  "faq.tips.a": "Garmin Connect and Strava may reject uploads if duplicate activities already exist (especially Strava). Delete the original split activities before uploading the merged file.",
+  "faq.bugs.q": "Bug Reports",
+  "faq.bugs.a.pre": "If something goes wrong, please report it on",
+  "faq.bugs.a.post": ".",
+  "faq.bugs.link": "GitHub Issues"
 }

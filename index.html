@@ -15,6 +15,52 @@
       <button class="lang-btn" id="lang-btn">EN</button>
     </header>
     <main id="app"></main>
+    <section class="faq">
+      <h3 class="faq-title" data-i18n="faq.section.title">よくある質問</h3>
+      <div class="faq-list">
+        <div class="faq-item faq-item--red">
+          <div class="faq-heading">
+            <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+            <span class="faq-q" data-i18n="faq.privacy.q">プライバシーについて</span>
+          </div>
+          <p class="faq-a" data-i18n="faq.privacy.a">アップロードしたファイルはブラウザ内だけで処理されます。サーバーには一切送信されません。</p>
+        </div>
+        <div class="faq-item faq-item--orange">
+          <div class="faq-heading">
+            <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+            <span class="faq-q" data-i18n="faq.who.q">どんな人向け？</span>
+          </div>
+          <p class="faq-a" data-i18n="faq.who.a">Garmin デバイスなどの電池切れや一時停止でライドが複数ファイルに分割されてしまった方向けです。Garmin Connect・Strava などにアップロードできる 1 つのファイルに結合できます。</p>
+        </div>
+        <div class="faq-item faq-item--red">
+          <div class="faq-heading">
+            <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            <span class="faq-q" data-i18n="faq.howto.q">使い方</span>
+          </div>
+          <p class="faq-a" data-i18n="faq.howto.a">結合したいファイルをすべてドロップ（またはクリックして選択）して、「結合してダウンロード」を押すだけです。順番はドラッグで並べ替えできます。</p>
+        </div>
+        <div class="faq-item faq-item--orange">
+          <div class="faq-heading">
+            <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span class="faq-q" data-i18n="faq.tips.q">アドバイス</span>
+          </div>
+          <p class="faq-a" data-i18n="faq.tips.a">Garmin Connect・Strava では重複アクティビティがあるとアップロードが失敗することがあります（特に Strava）。結合ファイルをアップロードする前に、元の分割アクティビティを先に削除してください。</p>
+        </div>
+        <div class="faq-item faq-item--red">
+          <div class="faq-heading">
+            <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span class="faq-q" data-i18n="faq.bugs.q">バグ報告</span>
+          </div>
+          <p class="faq-a">
+            <span data-i18n="faq.bugs.a.pre">問題が起きた場合は</span>
+            <a href="https://github.com/toiee-kameda/ridestitch/issues"
+               target="_blank" rel="noopener noreferrer"
+               class="faq-link" data-i18n="faq.bugs.link">GitHub Issues</a>
+            <span data-i18n="faq.bugs.a.post">からご報告ください。</span>
+          </p>
+        </div>
+      </div>
+    </section>
     <footer>
       <a href="https://github.com/toiee-kameda/ridestitch" target="_blank" rel="noopener noreferrer" class="github-link">
         <svg class="github-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>

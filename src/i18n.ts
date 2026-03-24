@@ -18,3 +18,10 @@ export function getLang(): Lang {
 export function t(key: string): string {
   return locales[currentLang][key] ?? key
 }
+
+export function applyStaticI18n(): void {
+  document.querySelectorAll<HTMLElement>('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n!
+    el.textContent = t(key)
+  })
+}
