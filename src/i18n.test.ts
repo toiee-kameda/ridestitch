@@ -1,7 +1,8 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { t, setLang } from './i18n'
 
 describe('i18n', () => {
+  beforeEach(() => setLang('en'))
   it('returns Japanese string when lang is ja', () => {
     setLang('ja')
     expect(t('app.title')).toBe('RideStitch')
