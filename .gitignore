@@ -27,3 +27,4 @@ src/**/*.js
 *.njsproj
 *.sln
 *.sw?
+docs/test-data/*
