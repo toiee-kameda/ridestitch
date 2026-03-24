@@ -48,6 +48,53 @@ function decodeFit(bytes: Uint8Array): Record<string, unknown[]> {
 }
 
 /**
+ * Re-decode merged FIT data and verify key fields round-trip correctly.
+ * Returns a list of warning strings (empty if all checks pass). Never throws.
+ * On failure, also calls console.warn so issues appear in the browser console.
+ */
+function verifyMergedFit(
+  data: Uint8Array,
+  expected: { totalDistanceM: number; totalElapsedTimeS: number; recordCount: number }
+): string[] {
+  const warnings: string[] = []
+  let messages: Record<string, unknown[]>
+  try {
+    messages = decodeFit(data)
+  } catch {
+    const msg = 'verifyMergedFit: failed to re-decode merged file'
+    console.warn(msg)
+    warnings.push(msg)
+    return warnings
+  }
+
+  const sessions = (messages['sessionMesgs'] ?? []) as Record<string, number>[]
+  const s = sessions[0]
+  if (s) {
+    if (typeof s['totalDistance'] === 'number' &&
+        Math.abs(s['totalDistance'] - expected.totalDistanceM) > 1.0) {
+      const msg = `totalDistance mismatch: expected ${expected.totalDistanceM}, got ${s['totalDistance']}`
+      console.warn(msg)
+      warnings.push(msg)
+    }
+    if (typeof s['totalElapsedTime'] === 'number' &&
+        Math.abs(s['totalElapsedTime'] - expected.totalElapsedTimeS) > 1.0) {
+      const msg = `totalElapsedTime mismatch: expected ${expected.totalElapsedTimeS}, got ${s['totalElapsedTime']}`
+      console.warn(msg)
+      warnings.push(msg)
+    }
+  }
+
+  const recordCount = (messages['recordMesgs'] ?? []).length
+  if (recordCount !== expected.recordCount) {
+    const msg = `record count mismatch: expected ${expected.recordCount}, got ${recordCount}`
+    console.warn(msg)
+    warnings.push(msg)
+  }
+
+  return warnings
+}
+
+/**
  * Merge multiple FIT files (Activity type) into a single FIT file.
  *
  * Strategy:
@@ -69,6 +116,7 @@ export interface FitMergeResult {
   data: Uint8Array
   totalDurationMs?: number
   totalDistanceM?: number
+  warnings: string[]
 }
 
 export async function mergeFitFiles(files: File[]): Promise<FitMergeResult> {
@@ -262,5 +310,13 @@ export async function mergeFitFiles(files: File[]): Promise<FitMergeResult> {
   const rawDistance = mergedSession['totalDistance']
   if (typeof rawDistance === 'number') totalDistanceM = rawDistance
 
-  return { data: encoder.close(), totalDurationMs, totalDistanceM }
+  const data = encoder.close()
+
+  const warnings = verifyMergedFit(data, {
+    totalDistanceM: totalDistanceM ?? 0,
+    totalElapsedTimeS: totalDurationMs != null ? totalDurationMs / 1000 : 0,
+    recordCount: allRecords.length,
+  })
+
+  return { data, totalDurationMs, totalDistanceM, warnings }
 }

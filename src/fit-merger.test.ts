@@ -79,4 +79,11 @@ describe('mergeFitFiles', () => {
     expect(stats.totalDistanceM).toBeCloseTo(75794, -1)
     expect(stats.totalElapsedTimeS).toBeCloseTo(15229.838, 1)
   })
+
+  it('returns empty warnings array on a clean merge', async () => {
+    const f1 = loadTestFitFile('22254872498_ACTIVITY.fit')
+    const f2 = loadTestFitFile('22277738392_ACTIVITY.fit')
+    const result = await mergeFitFiles([f1, f2])
+    expect(result.warnings).toEqual([])
+  })
 })
