@@ -117,6 +117,105 @@ function collectAllEvents(allMessages: Record<string, unknown[]>[]): unknown[] {
 }
 
 /**
+ * Merge multiple session objects into a single session.
+ *
+ * sessions must be ordered oldest-first (file order).
+ * lapCount is the total number of laps across all files.
+ *
+ * Rules:
+ *  - Sum: totalTimerTime, totalDistance, totalCalories, totalAscent, totalDescent
+ *  - totalElapsedTime: wall-clock from first session start to last session end
+ *    (uses startTime + totalElapsedTime because Garmin Edge sets timestamp = startTime)
+ *  - Max: maxHeartRate, maxSpeed, maxPower, maxAltitude
+ *  - Distance-weighted avg: avgSpeed (float), avgCadence (rounded int)
+ *  - Timer-weighted avg: avgHeartRate, avgPower, avgTemperature (all rounded int)
+ *  - normalizedPower: 4th-power approximation, only if ALL sessions have the field
+ *  - All other fields: taken from sessions[0]
+ */
+function mergeSessionStats(
+  sessions: Record<string, unknown>[],
+  lapCount: number
+): Record<string, unknown> {
+  if (sessions.length === 0) return {}
+
+  const merged: Record<string, unknown> = { ...sessions[0] }
+  const first = sessions[0]
+  const last = sessions[sessions.length - 1]
+
+  // Sum fields
+  for (const field of ['totalTimerTime', 'totalDistance', 'totalCalories', 'totalAscent', 'totalDescent']) {
+    const total = sessions.reduce((acc, s) => acc + (typeof s[field] === 'number' ? (s[field] as number) : 0), 0)
+    if (sessions.some((s) => s[field] != null)) merged[field] = total
+  }
+
+  // totalElapsedTime: wall-clock from first start to last end
+  // FIXED: Garmin Edge writes session.timestamp = session.startTime (not end time),
+  // so we compute end time as startTime + totalElapsedTime.
+  if (
+    typeof first['startTime'] === 'number' &&
+    typeof last['startTime'] === 'number' &&
+    typeof last['totalElapsedTime'] === 'number'
+  ) {
+    merged['totalElapsedTime'] =
+      (last['startTime'] as number) + (last['totalElapsedTime'] as number) - (first['startTime'] as number)
+  }
+
+  // timestamp and lap metadata
+  if (last['timestamp'] != null) merged['timestamp'] = last['timestamp']
+  merged['numLaps'] = lapCount
+  merged['firstLapIndex'] = 0
+
+  // Max fields
+  for (const field of ['maxHeartRate', 'maxSpeed', 'maxPower', 'maxAltitude']) {
+    const values = sessions.map((s) => s[field]).filter((v): v is number => typeof v === 'number')
+    if (values.length > 0) merged[field] = Math.max(...values)
+    else delete merged[field]
+  }
+
+  // Avg fields — distance-weighted
+  for (const field of ['avgSpeed', 'avgCadence'] as const) {
+    const relevant = sessions.filter((s) => typeof s[field] === 'number')
+    if (relevant.length === 0) { delete merged[field]; continue }
+    const totalDist = relevant.reduce((acc, s) => acc + ((s['totalDistance'] as number) ?? 0), 0)
+    if (totalDist === 0) { delete merged[field]; continue }
+    const weightedSum = relevant.reduce(
+      (acc, s) => acc + (s[field] as number) * ((s['totalDistance'] as number) ?? 0),
+      0
+    )
+    const result = weightedSum / totalDist
+    merged[field] = field === 'avgCadence' ? Math.round(result) : result
+  }
+
+  // Avg fields — timer-weighted
+  for (const field of ['avgHeartRate', 'avgPower', 'avgTemperature'] as const) {
+    const relevant = sessions.filter((s) => typeof s[field] === 'number')
+    if (relevant.length === 0) { delete merged[field]; continue }
+    const totalTimer = relevant.reduce((acc, s) => acc + ((s['totalTimerTime'] as number) ?? 0), 0)
+    if (totalTimer === 0) { delete merged[field]; continue }
+    const weightedSum = relevant.reduce(
+      (acc, s) => acc + (s[field] as number) * ((s['totalTimerTime'] as number) ?? 0),
+      0
+    )
+    merged[field] = Math.round(weightedSum / totalTimer)
+  }
+
+  // normalizedPower — 4th-power approximation, only if ALL sessions have it
+  if (sessions.every((s) => typeof s['normalizedPower'] === 'number')) {
+    const totalTimer = sessions.reduce((acc, s) => acc + ((s['totalTimerTime'] as number) ?? 0), 0)
+    const sum4 = sessions.reduce((acc, s) => {
+      const np = s['normalizedPower'] as number
+      const t = (s['totalTimerTime'] as number) ?? 0
+      return acc + Math.pow(np, 4) * t
+    }, 0)
+    merged['normalizedPower'] = Math.round(Math.pow(sum4 / totalTimer, 0.25))
+  } else {
+    delete merged['normalizedPower']
+  }
+
+  return merged
+}
+
+/**
  * Merge multiple FIT files (Activity type) into a single FIT file.
  *
  * Strategy:
@@ -197,6 +296,8 @@ export async function mergeFitFiles(files: File[]): Promise<FitMergeResult> {
   }
 
   // Merge session messages into one
+  // FIXED: now uses mergeSessionStats for correct avg/max calculation and
+  // wall-clock totalElapsedTime that includes inter-file gaps.
   const allSessions: Record<string, unknown>[] = []
   for (const msgs of allMessages) {
     const sessions = (msgs['sessionMesgs'] as unknown[]) ?? []
@@ -204,43 +305,7 @@ export async function mergeFitFiles(files: File[]): Promise<FitMergeResult> {
       allSessions.push(s as Record<string, unknown>)
     }
   }
-
-  let mergedSession: Record<string, unknown> = {}
-  if (allSessions.length > 0) {
-    // Base on first session
-    mergedSession = { ...allSessions[0] }
-
-    // Sum numeric fields across all sessions
-    const numericSumFields = [
-      'totalElapsedTime',
-      'totalTimerTime',
-      'totalDistance',
-      'totalCalories',
-      'totalAscent',
-      'totalDescent',
-    ]
-    for (const field of numericSumFields) {
-      const total = allSessions.reduce((acc, s) => {
-        const v = s[field]
-        return acc + (typeof v === 'number' ? v : 0)
-      }, 0)
-      if (allSessions.some((s) => s[field] != null)) {
-        mergedSession[field] = total
-      }
-    }
-
-    // timestamp from last session
-    const lastSession = allSessions[allSessions.length - 1]
-    if (lastSession['timestamp'] != null) {
-      mergedSession['timestamp'] = lastSession['timestamp']
-    }
-
-    // num_laps is total lap count
-    mergedSession['numLaps'] = lapIndex
-
-    // firstLapIndex = 0
-    mergedSession['firstLapIndex'] = 0
-  }
+  const mergedSession = mergeSessionStats(allSessions, lapIndex)
 
   // Collect activity message from first file (or synthesize)
   const allActivities: Record<string, unknown>[] = []

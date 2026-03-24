@@ -34,6 +34,21 @@ function decodeMergedStats(data: Uint8Array): { totalDistanceM: number; totalEla
   }
 }
 
+function decodeMergedSession(data: Uint8Array): Record<string, number> {
+  const stream = Stream.fromArrayBuffer(data.buffer as ArrayBuffer)
+  const decoder = new Decoder(stream)
+  const { messages } = decoder.read({
+    convertDateTimesToDates: false,
+    convertTypesToStrings: false,
+    applyScaleAndOffset: true,
+    expandSubFields: false,
+    expandComponents: true,
+    mergeHeartRates: true,
+  })
+  const sessions = (messages as Record<string, unknown[]>)['sessionMesgs'] ?? []
+  return (sessions[0] ?? {}) as Record<string, number>
+}
+
 function countMergedEvents(data: Uint8Array): number {
   const stream = Stream.fromArrayBuffer(data.buffer as ArrayBuffer)
   const decoder = new Decoder(stream)
@@ -86,12 +101,16 @@ describe('mergeFitFiles', () => {
 
     // Verify stats returned by mergeFitFiles
     expect(result.totalDistanceM).toBeCloseTo(75794, -1)   // within ~10m
-    expect(result.totalDurationMs).toBeCloseTo(15229838, -3) // within ~1s
+    // totalElapsedTime = wall-clock (startTime2 + elapsed2 - startTime1)
+    // = (1143079094 + 8977.719) - 1143071581 = 16490.719s
+    expect(result.totalDurationMs).toBeCloseTo(16490719, -3)
 
     // Verify by re-decoding the merged FIT output
     const stats = decodeMergedStats(result.data)
     expect(stats.totalDistanceM).toBeCloseTo(75794, -1)
-    expect(stats.totalElapsedTimeS).toBeCloseTo(15229.838, 1)
+    // totalElapsedTime: wall-clock = (startTime2 + elapsed2) - startTime1
+    // = (1143079094 + 8977.719) - 1143071581 = 16490.719s
+    expect(stats.totalElapsedTimeS).toBeCloseTo(16490.719, 0)
   })
 
   it('returns empty warnings array on a clean merge', async () => {
@@ -107,5 +126,26 @@ describe('mergeFitFiles', () => {
     const result = await mergeFitFiles([f1, f2])
     // File 1 has 105 events, File 2 has 124 events → merged = 229
     expect(countMergedEvents(result.data)).toBe(229)
+  })
+
+  it('merges session avg/max stats correctly', async () => {
+    const f1 = loadTestFitFile('22254872498_ACTIVITY.fit')
+    const f2 = loadTestFitFile('22277738392_ACTIVITY.fit')
+    const result = await mergeFitFiles([f1, f2])
+    const s = decodeMergedSession(result.data)
+
+    // totalElapsedTime: wall-clock = (file2.startTime + file2.totalElapsedTime) - file1.startTime
+    // = (1143079094 + 8977.719) - 1143071581 = 16490.719s
+    expect(s.totalElapsedTime).toBeCloseTo(16490.719, 0)
+
+    // max fields
+    expect(s.maxHeartRate).toBe(181)   // max(181, 179)
+    expect(s.maxPower).toBe(673)       // max(673, 432)
+
+    // avg fields (see Key Numbers in plan for formula)
+    expect(s.avgHeartRate).toBe(152)       // timer-weighted
+    expect(s.avgPower).toBe(113)           // timer-weighted
+    expect(s.avgCadence).toBe(70)          // distance-weighted
+    expect(s.normalizedPower).toBe(140)    // 4th-power approximation
   })
 })
