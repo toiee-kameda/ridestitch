@@ -2,6 +2,11 @@
 import { getState, type FileEntry } from './state'
 import { t } from './i18n'
 
+// Utility: escape HTML to prevent XSS when interpolating user data
+function esc(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
 // Utility: format bytes
 function fmtSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
@@ -11,7 +16,7 @@ function fmtSize(bytes: number): string {
 
 // Utility: format duration (ms → "2h 34m")
 function fmtDuration(ms?: number): string {
-  if (!ms) return '--'
+  if (ms == null) return '--'
   const h = Math.floor(ms / 3600000)
   const m = Math.floor((ms % 3600000) / 60000)
   return h > 0 ? `${h}h ${m}m` : `${m}m`
@@ -19,7 +24,7 @@ function fmtDuration(ms?: number): string {
 
 // Utility: format distance (m → "87.3 km")
 function fmtDistance(m?: number): string {
-  if (!m) return '--'
+  if (m == null) return '--'
   return `${(m / 1000).toFixed(1)} km`
 }
 
@@ -85,7 +90,7 @@ function renderFileCard(entry: FileEntry): string {
     <div class="file-card" draggable="true" data-id="${entry.id}">
       <span class="drag-handle">⠿</span>
       <div class="file-info">
-        <div class="file-name">${entry.name}</div>
+        <div class="file-name">${esc(entry.name)}</div>
         <div class="file-meta">${fmtSize(entry.size)}${time ? ` · ${time}` : ''}</div>
       </div>
       <button class="delete-btn" data-delete="${entry.id}" title="${t('file.delete')}">✕</button>
@@ -101,7 +106,7 @@ function renderSuccess(): string {
       <div class="success-icon">✅</div>
       <div class="success-title">${t('success.title')}</div>
       <div class="success-sub">${t('success.subtitle')}</div>
-      <div class="success-file">📄 ${result.filename} · ${fmtSize(result.sizeBytes)}</div>
+      <div class="success-file">📄 ${esc(result.filename)} · ${fmtSize(result.sizeBytes)}</div>
     </div>
 
     <div class="stats">
@@ -136,7 +141,7 @@ function renderError(): string {
   return `
     <div class="error-card">
       <div class="error-title">${t('error.title')}</div>
-      <div class="error-msg">${error ?? ''}</div>
+      <div class="error-msg">${esc(error ?? '')}</div>
     </div>
     <button class="reset-btn" id="reset-btn">${t('error.reset')}</button>
   `
