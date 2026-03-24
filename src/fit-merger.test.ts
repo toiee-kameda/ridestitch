@@ -34,6 +34,20 @@ function decodeMergedStats(data: Uint8Array): { totalDistanceM: number; totalEla
   }
 }
 
+function countMergedEvents(data: Uint8Array): number {
+  const stream = Stream.fromArrayBuffer(data.buffer as ArrayBuffer)
+  const decoder = new Decoder(stream)
+  const { messages } = decoder.read({
+    convertDateTimesToDates: false,
+    convertTypesToStrings: false,
+    applyScaleAndOffset: true,
+    expandSubFields: false,
+    expandComponents: true,
+    mergeHeartRates: true,
+  })
+  return ((messages as Record<string, unknown[]>)['eventMesgs'] ?? []).length
+}
+
 describe('sortFilesByStartTime', () => {
   it('sorts file entries by startTime ascending', () => {
     const entries = [
@@ -85,5 +99,13 @@ describe('mergeFitFiles', () => {
     const f2 = loadTestFitFile('22277738392_ACTIVITY.fit')
     const result = await mergeFitFiles([f1, f2])
     expect(result.warnings).toEqual([])
+  })
+
+  it('preserves all events from all files in merged output', async () => {
+    const f1 = loadTestFitFile('22254872498_ACTIVITY.fit')
+    const f2 = loadTestFitFile('22277738392_ACTIVITY.fit')
+    const result = await mergeFitFiles([f1, f2])
+    // File 1 has 105 events, File 2 has 124 events → merged = 229
+    expect(countMergedEvents(result.data)).toBe(229)
   })
 })

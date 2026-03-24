@@ -99,6 +99,24 @@ function verifyMergedFit(
 }
 
 /**
+ * Collect all event messages from all decoded files, sorted by timestamp ascending.
+ * This preserves intermediate stop/start events (e.g., rest breaks between files)
+ * that would otherwise be discarded.
+ */
+function collectAllEvents(allMessages: Record<string, unknown[]>[]): unknown[] {
+  const allEvents: unknown[] = []
+  for (const msgs of allMessages) {
+    const events = (msgs['eventMesgs'] as unknown[]) ?? []
+    allEvents.push(...events)
+  }
+  return allEvents.sort((a, b) => {
+    const aTs = (a as Record<string, number>)['timestamp'] ?? 0
+    const bTs = (b as Record<string, number>)['timestamp'] ?? 0
+    return aTs - bTs
+  })
+}
+
+/**
  * Merge multiple FIT files (Activity type) into a single FIT file.
  *
  * Strategy:
@@ -263,13 +281,12 @@ export async function mergeFitFiles(files: File[]): Promise<FitMergeResult> {
   // 1. file_id
   encoder.onMesg(Profile.MesgNum.FILE_ID, fileId)
 
-  // 2. All event messages from first file (start event)
-  const firstEvents = (firstMsgs['eventMesgs'] as unknown[]) ?? []
-  const startEvents = firstEvents.filter(
-    (e) => (e as Record<string, unknown>)['event'] === 0 /* timer */ &&
-            (e as Record<string, unknown>)['eventType'] === 0 /* start */
-  )
-  for (const ev of startEvents) {
+  // 2. All events from all files (timestamp-sorted)
+  // FIXED: previously only wrote start from file 1 and stop from last file,
+  // discarding intermediate stop/start events (rest breaks). Now all events
+  // from all files are collected and written in chronological order.
+  const allEvents = collectAllEvents(allMessages)
+  for (const ev of allEvents) {
     encoder.onMesg(Profile.MesgNum.EVENT, ev as object)
   }
 
@@ -278,29 +295,17 @@ export async function mergeFitFiles(files: File[]): Promise<FitMergeResult> {
     encoder.onMesg(Profile.MesgNum.RECORD, record as object)
   }
 
-  // 4. Stop event from last file
-  const lastMsgs = allMessages[allMessages.length - 1]
-  const lastEvents = (lastMsgs['eventMesgs'] as unknown[]) ?? []
-  const stopEvents = lastEvents.filter(
-    (e) => (e as Record<string, unknown>)['event'] === 0 /* timer */ &&
-            ((e as Record<string, unknown>)['eventType'] === 1 /* stop */ ||
-             (e as Record<string, unknown>)['eventType'] === 4 /* stop_disable_all */)
-  )
-  for (const ev of stopEvents) {
-    encoder.onMesg(Profile.MesgNum.EVENT, ev as object)
-  }
-
-  // 5. Lap messages
+  // 4. Lap messages
   for (const lap of allLaps) {
     encoder.onMesg(Profile.MesgNum.LAP, lap as object)
   }
 
-  // 6. Merged session
+  // 5. Merged session
   if (Object.keys(mergedSession).length > 0) {
     encoder.onMesg(Profile.MesgNum.SESSION, mergedSession)
   }
 
-  // 7. Activity message
+  // 6. Activity message
   if (Object.keys(mergedActivity).length > 0) {
     encoder.onMesg(Profile.MesgNum.ACTIVITY, mergedActivity)
   }
