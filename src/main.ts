@@ -14,19 +14,22 @@ function init(): void {
   bindStaticEvents()
 }
 
-// --- Static events (header, always present) ---
+// --- Static events (header, always present — called once) ---
 function bindStaticEvents(): void {
-  document.getElementById('lang-btn')!.addEventListener('click', () => {
-    const next = getState().lang === 'ja' ? 'en' : 'ja'
-    setLang(next)
-    setState({ lang: next })
-    render()
-    bindDynamicEvents()
-  })
+  const langBtn = document.getElementById('lang-btn')!
+  langBtn.addEventListener('click', handleLangToggle)
+}
+
+function handleLangToggle(): void {
+  const next = getState().lang === 'ja' ? 'en' : 'ja'
+  setLang(next)
+  setState({ lang: next })
+  render()
+  bindDynamicEvents()
 }
 
 // --- Dynamic events (re-bound after each render) ---
-export function bindDynamicEvents(): void {
+function bindDynamicEvents(): void {
   // Format tabs
   document.querySelectorAll<HTMLElement>('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -166,8 +169,10 @@ async function runMerge(): Promise<void> {
     const a = document.createElement('a')
     a.href = url
     a.download = filename
+    document.body.appendChild(a)
     a.click()
-    URL.revokeObjectURL(url)
+    document.body.removeChild(a)
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
 
     setState({
       phase: 'done',
