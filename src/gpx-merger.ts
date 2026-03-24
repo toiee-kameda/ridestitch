@@ -1,4 +1,9 @@
-export async function mergeGpxFiles(files: File[]): Promise<string> {
+export interface GpxMergeResult {
+  xml: string
+  totalDurationMs?: number
+}
+
+export async function mergeGpxFiles(files: File[]): Promise<GpxMergeResult> {
   if (files.length < 2) {
     throw new Error('Merge requires at least 2 files')
   }
@@ -24,6 +29,17 @@ export async function mergeGpxFiles(files: File[]): Promise<string> {
     return ta < tb ? -1 : ta > tb ? 1 : 0
   })
 
+  // Compute duration from first/last trackpoint times
+  let totalDurationMs: number | undefined
+  if (allTrkpts.length >= 2) {
+    const firstTime = allTrkpts[0].querySelector('time')?.textContent
+    const lastTime = allTrkpts[allTrkpts.length - 1].querySelector('time')?.textContent
+    if (firstTime && lastTime) {
+      const diff = new Date(lastTime).getTime() - new Date(firstTime).getTime()
+      if (!isNaN(diff) && diff >= 0) totalDurationMs = diff
+    }
+  }
+
   // Build output document
   const gpx = firstDoc!.createElement('gpx')
   gpx.setAttribute('version', '1.1')
@@ -44,5 +60,5 @@ export async function mergeGpxFiles(files: File[]): Promise<string> {
   trk.appendChild(trkseg)
   gpx.appendChild(trk)
 
-  return new XMLSerializer().serializeToString(gpx)
+  return { xml: new XMLSerializer().serializeToString(gpx), totalDurationMs }
 }

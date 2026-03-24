@@ -62,7 +62,13 @@ function decodeFit(bytes: Uint8Array): Record<string, unknown[]> {
  * @param files Array of File objects (must be >= 2)
  * @returns Merged FIT file as Uint8Array
  */
-export async function mergeFitFiles(files: File[]): Promise<Uint8Array> {
+export interface FitMergeResult {
+  data: Uint8Array
+  totalDurationMs?: number
+  totalDistanceM?: number
+}
+
+export async function mergeFitFiles(files: File[]): Promise<FitMergeResult> {
   if (files.length < 2) {
     throw new Error('mergeFitFiles requires at least 2 files')
   }
@@ -228,5 +234,15 @@ export async function mergeFitFiles(files: File[]): Promise<Uint8Array> {
     encoder.onMesg(Profile.MesgNum.ACTIVITY, mergedActivity)
   }
 
-  return encoder.close()
+  // Extract stats from merged session
+  // With applyScaleAndOffset=false: totalElapsedTime raw = ms (scale=1000, unit=s)
+  //                                 totalDistance raw = cm (scale=100, unit=m)
+  let totalDurationMs: number | undefined
+  let totalDistanceM: number | undefined
+  const rawDuration = mergedSession['totalElapsedTime']
+  if (typeof rawDuration === 'number') totalDurationMs = rawDuration
+  const rawDistance = mergedSession['totalDistance']
+  if (typeof rawDistance === 'number') totalDistanceM = rawDistance / 100
+
+  return { data: encoder.close(), totalDurationMs, totalDistanceM }
 }

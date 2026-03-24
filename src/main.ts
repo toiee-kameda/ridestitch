@@ -3,7 +3,7 @@ import './style.css'
 import { getState, setState, resetState, type FileEntry } from './state'
 import { setLang } from './i18n'
 import { render } from './ui'
-import { mergeFitFiles } from './fit-merger'
+import { mergeFitFiles, sortFilesByStartTime } from './fit-merger'
 import { mergeGpxFiles } from './gpx-merger'
 
 // --- Initialise ---
@@ -150,18 +150,25 @@ async function runMerge(): Promise<void> {
   bindDynamicEvents()
 
   try {
-    const rawFiles = files.map(f => f.file)
+    // Sort FIT files by session start time (defensive re-sort before merge)
+    const sortedFiles = format === 'fit' ? sortFilesByStartTime(files) : files
+    const rawFiles = sortedFiles.map(f => f.file)
     let blob: Blob
     let filename: string
+    let totalDurationMs: number | undefined
+    let totalDistanceM: number | undefined
 
     if (format === 'fit') {
-      const bytes = await mergeFitFiles(rawFiles)
-      blob = new Blob([bytes as Uint8Array<ArrayBuffer>], { type: 'application/octet-stream' })
+      const result = await mergeFitFiles(rawFiles)
+      blob = new Blob([result.data as Uint8Array<ArrayBuffer>], { type: 'application/octet-stream' })
       filename = 'merged_activity.fit'
+      totalDurationMs = result.totalDurationMs
+      totalDistanceM = result.totalDistanceM
     } else {
-      const xml = await mergeGpxFiles(rawFiles)
-      blob = new Blob([xml], { type: 'application/gpx+xml' })
+      const result = await mergeGpxFiles(rawFiles)
+      blob = new Blob([result.xml], { type: 'application/gpx+xml' })
       filename = 'merged_activity.gpx'
+      totalDurationMs = result.totalDurationMs
     }
 
     // Trigger download
@@ -180,6 +187,8 @@ async function runMerge(): Promise<void> {
         filename,
         sizeBytes: blob.size,
         fileCount: files.length,
+        totalDurationMs,
+        totalDistanceM,
       },
     })
   } catch (err) {

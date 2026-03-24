@@ -13,6 +13,10 @@ dist-ssr
 .superpowers/
 *.local
 
+# Compiled JS artifacts from tsc (source is TypeScript)
+src/**/*.js
+*.config.js
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
