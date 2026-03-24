@@ -28,7 +28,7 @@ async function readFileBytes(file: File): Promise<Uint8Array> {
  * and convertTypesToStrings=false so we keep numeric enum values for re-encoding.
  */
 function decodeFit(bytes: Uint8Array): Record<string, unknown[]> {
-  const stream = Stream.fromByteArray(Array.from(bytes))
+  const stream = Stream.fromArrayBuffer(bytes.buffer)
   const decoder = new Decoder(stream)
   const { messages, errors } = decoder.read({
     convertDateTimesToDates: false,
@@ -39,8 +39,7 @@ function decodeFit(bytes: Uint8Array): Record<string, unknown[]> {
     mergeHeartRates: false,
   })
   if (errors.length > 0) {
-    // Non-fatal: log but continue
-    console.warn('FIT decode errors:', errors)
+    throw new Error(`Failed to decode FIT file: ${errors[0]}`)
   }
   return messages as Record<string, unknown[]>
 }
@@ -122,7 +121,6 @@ export async function mergeFitFiles(files: File[]): Promise<Uint8Array> {
       'totalTimerTime',
       'totalDistance',
       'totalCalories',
-      'numLaps',
       'totalAscent',
       'totalDescent',
     ]
