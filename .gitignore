@@ -29,3 +29,4 @@ src/**/*.js
 *.sw?
 docs/test-data/*
 docs/superpowers/
+.worktrees/
