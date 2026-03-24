@@ -84,7 +84,7 @@ export async function mergeFitFiles(files: File[]): Promise<FitMergeResult> {
   // Collect all record messages (GPS points, HR, power, etc.)
   const allRecords: unknown[] = []
   for (const msgs of allMessages) {
-    const records = (msgs['record'] as unknown[]) ?? []
+    const records = (msgs['recordMesgs'] as unknown[]) ?? []
     allRecords.push(...records)
   }
 
@@ -99,7 +99,7 @@ export async function mergeFitFiles(files: File[]): Promise<FitMergeResult> {
   const allLaps: unknown[] = []
   let lapIndex = 0
   for (const msgs of allMessages) {
-    const laps = (msgs['lap'] as unknown[]) ?? []
+    const laps = (msgs['lapMesgs'] as unknown[]) ?? []
     for (const lap of laps) {
       const lapCopy = { ...(lap as Record<string, unknown>) }
       lapCopy['messageIndex'] = lapIndex++
@@ -110,7 +110,7 @@ export async function mergeFitFiles(files: File[]): Promise<FitMergeResult> {
   // Merge session messages into one
   const allSessions: Record<string, unknown>[] = []
   for (const msgs of allMessages) {
-    const sessions = (msgs['session'] as unknown[]) ?? []
+    const sessions = (msgs['sessionMesgs'] as unknown[]) ?? []
     for (const s of sessions) {
       allSessions.push(s as Record<string, unknown>)
     }
@@ -156,7 +156,7 @@ export async function mergeFitFiles(files: File[]): Promise<FitMergeResult> {
   // Collect activity message from first file (or synthesize)
   const allActivities: Record<string, unknown>[] = []
   for (const msgs of allMessages) {
-    const acts = (msgs['activity'] as unknown[]) ?? []
+    const acts = (msgs['activityMesgs'] as unknown[]) ?? []
     for (const a of acts) {
       allActivities.push(a as Record<string, unknown>)
     }
@@ -175,7 +175,7 @@ export async function mergeFitFiles(files: File[]): Promise<FitMergeResult> {
 
   // Get file_id from first file
   const firstMsgs = allMessages[0]
-  const fileIdMsgs = (firstMsgs['fileId'] as unknown[]) ?? []
+  const fileIdMsgs = (firstMsgs['fileIdMesgs'] as unknown[]) ?? []
   const fileId: Record<string, unknown> =
     fileIdMsgs.length > 0
       ? { ...(fileIdMsgs[0] as Record<string, unknown>) }
@@ -193,7 +193,7 @@ export async function mergeFitFiles(files: File[]): Promise<FitMergeResult> {
   encoder.onMesg(Profile.MesgNum.FILE_ID, fileId)
 
   // 2. All event messages from first file (start event)
-  const firstEvents = (firstMsgs['event'] as unknown[]) ?? []
+  const firstEvents = (firstMsgs['eventMesgs'] as unknown[]) ?? []
   const startEvents = firstEvents.filter(
     (e) => (e as Record<string, unknown>)['event'] === 0 /* timer */ &&
             (e as Record<string, unknown>)['eventType'] === 0 /* start */
@@ -209,7 +209,7 @@ export async function mergeFitFiles(files: File[]): Promise<FitMergeResult> {
 
   // 4. Stop event from last file
   const lastMsgs = allMessages[allMessages.length - 1]
-  const lastEvents = (lastMsgs['event'] as unknown[]) ?? []
+  const lastEvents = (lastMsgs['eventMesgs'] as unknown[]) ?? []
   const stopEvents = lastEvents.filter(
     (e) => (e as Record<string, unknown>)['event'] === 0 /* timer */ &&
             ((e as Record<string, unknown>)['eventType'] === 1 /* stop */ ||
