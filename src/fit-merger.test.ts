@@ -23,8 +23,8 @@ function decodeMergedStats(data: Uint8Array): { totalDistanceM: number; totalEla
     convertTypesToStrings: false,
     applyScaleAndOffset: true,
     expandSubFields: false,
-    expandComponents: false,
-    mergeHeartRates: false,
+    expandComponents: true,
+    mergeHeartRates: true,
   })
   const sessions = (messages as Record<string, unknown[]>)['sessionMesgs'] ?? []
   const s = sessions[0] as Record<string, number> | undefined

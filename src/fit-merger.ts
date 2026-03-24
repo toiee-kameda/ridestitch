@@ -38,8 +38,8 @@ function decodeFit(bytes: Uint8Array): Record<string, unknown[]> {
     convertTypesToStrings: false,
     applyScaleAndOffset: true,
     expandSubFields: false,
-    expandComponents: false,
-    mergeHeartRates: false,
+    expandComponents: true,   // FIXED: expand compressed_speed_distance for distance accuracy
+    mergeHeartRates: true,    // FIXED: requires expandComponents=true (SDK requirement)
   })
   if (errors.length > 0) {
     throw new Error(`Failed to decode FIT file: ${errors[0]}`)
@@ -85,10 +85,26 @@ export async function mergeFitFiles(files: File[]): Promise<FitMergeResult> {
   )
 
   // Collect all record messages (GPS points, HR, power, etc.)
+  // The `distance` field in FIT records is cumulative from the start of each file.
+  // We must add a per-file offset so that distance increases monotonically across
+  // the merged file. Strava (unlike Garmin Connect) reads the record-level `distance`
+  // field rather than session.totalDistance, and breaks on resets.
   const allRecords: unknown[] = []
+  let distanceOffset = 0
   for (const msgs of allMessages) {
     const records = (msgs['recordMesgs'] as unknown[]) ?? []
-    allRecords.push(...records)
+    const adjusted = records.map((r) => {
+      const rec = r as Record<string, unknown>
+      if (typeof rec['distance'] === 'number') {
+        return { ...rec, distance: rec['distance'] + distanceOffset }
+      }
+      return rec
+    })
+    allRecords.push(...adjusted)
+    // The last record's distance is the total distance for this file
+    const lastRec = records[records.length - 1] as Record<string, unknown> | undefined
+    const lastDist = typeof lastRec?.['distance'] === 'number' ? lastRec['distance'] : 0
+    distanceOffset += lastDist
   }
 
   // Sort records by timestamp (FIT epoch seconds, numeric)
