@@ -263,6 +263,27 @@ main { width: 100%; max-width: 480px; }
 .error-title { color: var(--accent1); font-weight: 600; margin-bottom: 8px; }
 .error-msg { color: var(--text-muted); font-size: 0.85rem; }
 
+/* Footer */
+footer {
+  margin-top: 40px;
+  text-align: center;
+}
+.github-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 0.78rem;
+  transition: color 0.15s;
+}
+.github-link:hover { color: var(--text-muted); }
+.github-icon {
+  width: 16px; height: 16px;
+  fill: currentColor;
+  flex-shrink: 0;
+}
+
 /* Keyframes */
 @keyframes slideIn {
   from { opacity: 0; transform: translateY(-8px); }

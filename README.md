@@ -87,4 +87,8 @@ src/
 
 ## ライセンス
 
-Private
+[MIT License](LICENSE)
+
+## リンク
+
+- GitHub: [https://github.com/toiee-kameda/ridestitch](https://github.com/toiee-kameda/ridestitch)
