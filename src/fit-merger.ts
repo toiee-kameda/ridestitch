@@ -69,7 +69,11 @@ function verifyMergedFit(
 
   const sessions = (messages['sessionMesgs'] ?? []) as Record<string, number>[]
   const s = sessions[0]
-  if (s) {
+  if (!s) {
+    const msg = 'verifyMergedFit: no session message found in merged file'
+    console.warn(msg)
+    warnings.push(msg)
+  } else {
     if (typeof s['totalDistance'] === 'number' &&
         Math.abs(s['totalDistance'] - expected.totalDistanceM) > 1.0) {
       const msg = `totalDistance mismatch: expected ${expected.totalDistanceM}, got ${s['totalDistance']}`
