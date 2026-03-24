@@ -1,9 +1,37 @@
 import { describe, it, expect } from 'vitest'
+import { readFileSync } from 'fs'
+import { resolve } from 'path'
+import { Decoder, Stream } from '@garmin/fitsdk'
 import { mergeFitFiles, sortFilesByStartTime } from './fit-merger'
 
 // Minimal valid FIT file bytes for testing (14-byte header + CRC)
 function makeMinimalFitFile(name = 'test.fit'): File {
   return new File([new Uint8Array(20).fill(0)], name, { type: 'application/octet-stream' })
+}
+
+function loadTestFitFile(filename: string): File {
+  const absPath = resolve(__dirname, '../docs/test-data', filename)
+  const buf = readFileSync(absPath)
+  return new File([buf], filename, { type: 'application/octet-stream' })
+}
+
+function decodeMergedStats(data: Uint8Array): { totalDistanceM: number; totalElapsedTimeS: number } {
+  const stream = Stream.fromArrayBuffer(data.buffer as ArrayBuffer)
+  const decoder = new Decoder(stream)
+  const { messages } = decoder.read({
+    convertDateTimesToDates: false,
+    convertTypesToStrings: false,
+    applyScaleAndOffset: true,
+    expandSubFields: false,
+    expandComponents: false,
+    mergeHeartRates: false,
+  })
+  const sessions = (messages as Record<string, unknown[]>)['sessionMesgs'] ?? []
+  const s = sessions[0] as Record<string, number> | undefined
+  return {
+    totalDistanceM: s?.totalDistance ?? NaN,
+    totalElapsedTimeS: s?.totalElapsedTime ?? NaN,
+  }
 }
 
 describe('sortFilesByStartTime', () => {
@@ -31,5 +59,24 @@ describe('mergeFitFiles', () => {
   it('rejects when fewer than 2 files given', async () => {
     const f = makeMinimalFitFile()
     await expect(mergeFitFiles([f])).rejects.toThrow('at least 2')
+  })
+
+  it('merges two real FIT files with correct distance and time', async () => {
+    // File 1: ~30994.77m, ~6252s
+    // File 2: ~44799.25m, ~8977s
+    // Expected merged: ~75794m, ~15229s
+    const f1 = loadTestFitFile('22254872498_ACTIVITY.fit')
+    const f2 = loadTestFitFile('22277738392_ACTIVITY.fit')
+
+    const result = await mergeFitFiles([f1, f2])
+
+    // Verify stats returned by mergeFitFiles
+    expect(result.totalDistanceM).toBeCloseTo(75794, -1)   // within ~10m
+    expect(result.totalDurationMs).toBeCloseTo(15229838, -3) // within ~1s
+
+    // Verify by re-decoding the merged FIT output
+    const stats = decodeMergedStats(result.data)
+    expect(stats.totalDistanceM).toBeCloseTo(75794, -1)
+    expect(stats.totalElapsedTimeS).toBeCloseTo(15229.838, 1)
   })
 })

@@ -26,6 +26,9 @@ async function readFileBytes(file: File): Promise<Uint8Array> {
  * Decode a FIT file's bytes and return its messages object.
  * Uses convertDateTimesToDates=false so we work with raw FIT epoch numbers,
  * and convertTypesToStrings=false so we keep numeric enum values for re-encoding.
+ * applyScaleAndOffset=true is required because the Encoder.onMesg expects
+ * real-world values (meters, seconds) and internally unapplies scale/offset
+ * before writing to the file. Passing raw values would cause double-scaling.
  */
 function decodeFit(bytes: Uint8Array): Record<string, unknown[]> {
   const stream = Stream.fromArrayBuffer(bytes.buffer)
@@ -33,7 +36,7 @@ function decodeFit(bytes: Uint8Array): Record<string, unknown[]> {
   const { messages, errors } = decoder.read({
     convertDateTimesToDates: false,
     convertTypesToStrings: false,
-    applyScaleAndOffset: false,
+    applyScaleAndOffset: true,
     expandSubFields: false,
     expandComponents: false,
     mergeHeartRates: false,
@@ -235,14 +238,13 @@ export async function mergeFitFiles(files: File[]): Promise<FitMergeResult> {
   }
 
   // Extract stats from merged session
-  // With applyScaleAndOffset=false: totalElapsedTime raw = ms (scale=1000, unit=s)
-  //                                 totalDistance raw = cm (scale=100, unit=m)
+  // With applyScaleAndOffset=true: totalElapsedTime is in seconds, totalDistance in meters
   let totalDurationMs: number | undefined
   let totalDistanceM: number | undefined
   const rawDuration = mergedSession['totalElapsedTime']
-  if (typeof rawDuration === 'number') totalDurationMs = rawDuration
+  if (typeof rawDuration === 'number') totalDurationMs = rawDuration * 1000
   const rawDistance = mergedSession['totalDistance']
-  if (typeof rawDistance === 'number') totalDistanceM = rawDistance / 100
+  if (typeof rawDistance === 'number') totalDistanceM = rawDistance
 
   return { data: encoder.close(), totalDurationMs, totalDistanceM }
 }
