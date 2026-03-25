@@ -110,8 +110,10 @@ function collectAllEvents(allMessages: Record<string, unknown[]>[]): unknown[] {
     allEvents.push(...events)
   }
   return allEvents.sort((a, b) => {
-    const aTs = (a as Record<string, number>)['timestamp'] ?? 0
-    const bTs = (b as Record<string, number>)['timestamp'] ?? 0
+    const aRec = a as Record<string, unknown>
+    const bRec = b as Record<string, unknown>
+    const aTs = typeof aRec['timestamp'] === 'number' ? aRec['timestamp'] : 0
+    const bTs = typeof bRec['timestamp'] === 'number' ? bRec['timestamp'] : 0
     return aTs - bTs
   })
 }
@@ -278,8 +280,10 @@ export async function mergeFitFiles(files: File[]): Promise<FitMergeResult> {
 
   // Sort records by timestamp (FIT epoch seconds, numeric)
   allRecords.sort((a, b) => {
-    const aTs = (a as Record<string, number>)['timestamp'] ?? 0
-    const bTs = (b as Record<string, number>)['timestamp'] ?? 0
+    const aRec = a as Record<string, unknown>
+    const bRec = b as Record<string, unknown>
+    const aTs = typeof aRec['timestamp'] === 'number' ? aRec['timestamp'] : 0
+    const bTs = typeof bRec['timestamp'] === 'number' ? bRec['timestamp'] : 0
     return aTs - bTs
   })
 

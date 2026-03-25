@@ -18,6 +18,9 @@ export async function mergeGpxFiles(files: File[]): Promise<GpxMergeResult> {
     if (doc.querySelector('parsererror')) {
       throw new Error(`Failed to parse GPX file: ${file.name}`)
     }
+    if (!doc.querySelector('gpx')) {
+      throw new Error(`No <gpx> root element found in: ${file.name}`)
+    }
     if (!firstDoc) firstDoc = doc
     doc.querySelectorAll('trkpt').forEach(pt => allTrkpts.push(pt))
   }
