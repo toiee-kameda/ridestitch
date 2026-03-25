@@ -146,7 +146,10 @@ function setupDragReorder(): void {
 }
 
 // --- Run merge ---
+let prevBlobUrl: string | null = null
+
 async function runMerge(): Promise<void> {
+  if (getState().phase === 'merging') return
   const { format, files } = getState()
   setState({ phase: 'merging' })
   render()
@@ -175,14 +178,15 @@ async function runMerge(): Promise<void> {
     }
 
     // Trigger download
+    if (prevBlobUrl) URL.revokeObjectURL(prevBlobUrl)
     const url = URL.createObjectURL(blob)
+    prevBlobUrl = url
     const a = document.createElement('a')
     a.href = url
     a.download = filename
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
-    setTimeout(() => URL.revokeObjectURL(url), 1000)
 
     setState({
       phase: 'done',
